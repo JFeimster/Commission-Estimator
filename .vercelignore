@@ -1,0 +1,12 @@
+node_modules
+dist
+coverage
+previews
+references
+docs
+tests
+bun.lock
+.env
+.env.local
+.DS_Store
+*.log

@@ -2,10 +2,11 @@
 
 The calculator requires **zero Node.js runtime or backend** once built. All artifacts deploy cleanly as static sites on Vercel, GitHub Pages, Netlify, or Cloudflare Pages.
 
-## 1. Production Deployment (`npm run build`)
+## 1. Production Deployment (`npm run build` & Vercel)
 - Promotes `sites/variant-1/` (Punk Utility Brutalism) to the repository root (`index.html`, `style.css`, `script.js`), strips `noindex`, and bundles static assets via Vite into `dist/`.
 - Excludes `sites/`, alternate variants, review gallery, and internal reference assets from the production bundle.
 - Production root operates with zero dependency on `sites/`.
+- **`vercel.json` & `.vercelignore`**: Pre-configured for zero-config Vercel deployments (`framework: "vite"`, `buildCommand: "npm run build"`, `outputDirectory: "dist"`, Node `>=20.19.0`, immutable `/assets/*` caching, and security headers).
 
 ## 2. Review Deployment (`npm run build:review`)
 - Outputs `dist/review/` containing:
