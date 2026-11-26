@@ -2,7 +2,7 @@
 /**
  * Flash-UI Portfolio Export Script (Sections 22 & 23)
  * Exports a self-contained, nested-URL-compatible grouped portfolio project to:
- *   dist/portfolio/sites/moonshine-broker-commission-calculator/
+ *   dist/portfolio/sites/commission-estimator/
  *
  * Rewrites shared module imports from ../../shared/ -> ../shared/ so all 4 variants
  * operate cleanly when copied into the Flash-UI Portfolio sites/ directory.
@@ -10,24 +10,32 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { COMMISSION_CONFIG } from "../shared/config/commission-config.js";
+import { PAY_PLANS } from "../shared/config/pay-plans/index.js";
+import { assertPublicConfiguration, validatePublicTree } from "./public-export-safety.mjs";
+assertPublicConfiguration(COMMISSION_CONFIG, PAY_PLANS);
 
 const rootDir = process.cwd();
-const slug = "moonshine-broker-commission-calculator";
-const destDir = path.join(rootDir, "dist", "portfolio", "sites", slug);
+const slug = "commission-estimator";
+const finalDir = path.join(rootDir, "dist", "portfolio", "sites", slug);
+const destDir = `${finalDir}.staging`;
 
 fs.rmSync(destDir, { recursive: true, force: true });
 fs.mkdirSync(destDir, { recursive: true });
 
-// 1. Copy shared core & force DEMONSTRATION MODE in exported portfolio artifact
+// Copy only runtime modules; never source agreements, registries or private links.
 const sharedDest = path.join(destDir, "shared");
-fs.cpSync(path.join(rootDir, "shared"), sharedDest, { recursive: true, force: true });
-const exportedConfigPath = path.join(sharedDest, "config", "commission-config.js");
-let configContent = fs.readFileSync(exportedConfigPath, "utf8");
-configContent = configContent.replace(
-  /verificationStatus:\s*["']VERIFIED PROGRAM MODE["']/,
-  'verificationStatus: "DEMONSTRATION MODE"'
-);
-fs.writeFileSync(exportedConfigPath, configContent, "utf8");
+for (const file of [
+  "lib/calculator-engine.js", "lib/charts.js", "lib/controller.js", "lib/faq-data.js",
+  "lib/pay-plan-ui.js", "lib/reporting.js", "lib/state.js",
+  "config/pay-plans/index.js", "config/pay-plans/direct-rate.js", "config/pay-plans/agency-override.js",
+  "config/pay-plans/iso-volume-split.js", "config/pay-plans/custom-partner.js",
+]) {
+  fs.mkdirSync(path.dirname(path.join(sharedDest, file)), { recursive: true });
+  fs.copyFileSync(path.join(rootDir, "shared", file), path.join(sharedDest, file));
+}
+fs.copyFileSync(path.join(rootDir, "shared/config/commission-config.js"), path.join(sharedDest, "config/commission-config.js"));
+fs.writeFileSync(path.join(sharedDest, "config/partner-links.js"), `export const PARTNER_LINKS = {becomePartnerUrl:null,speakWithRecruiterUrl:null,partnerBrochureUrl:null,leadCaptureEndpoint:null,canonicalBaseUrl:null,supportEmailDisplay:null};\nexport const APPROVED_PUBLIC_PARTNERS = {};\n`);
 
 // 2. Copy all 4 variants and rewrite ../../shared/ -> ../shared/ for nested portfolio layout
 const manifest = JSON.parse(fs.readFileSync(path.join(rootDir, "variants.json"), "utf8"));
@@ -50,6 +58,9 @@ for (const v of manifest.variants) {
   jsContent = jsContent.replace(/\.\.\/\.\.\/shared\//g, "../shared/");
   fs.writeFileSync(jsPath, jsContent, "utf8");
 
+  const htmlPath = path.join(destVariantDir, "index.html");
+  fs.writeFileSync(htmlPath, fs.readFileSync(htmlPath, "utf8").replaceAll("../../shared/", "../shared/"));
+
   // Verify rewritten imports resolve inside portfolio export
   const imports = [...jsContent.matchAll(/from\s+["'](\.[^"']+)["']/g)].map((m) => m[1]);
   for (const imp of imports) {
@@ -68,8 +79,9 @@ fs.writeFileSync(path.join(destDir, "index.html"), galleryHtml, "utf8");
 
 // 4. Copy metadata, previews, and README
 fs.writeFileSync(path.join(destDir, "variants.json"), JSON.stringify(portfolioManifest, null, 2) + "\n", "utf8");
+fs.writeFileSync(path.join(destDir, "package.json"), JSON.stringify({ name: "commission-estimator-portfolio", private: true, type: "module" }, null, 2) + "\n");
 fs.cpSync(path.join(rootDir, "project.json"), path.join(destDir, "project.json"));
-fs.cpSync(path.join(rootDir, "README.md"), path.join(destDir, "README.md"));
+fs.writeFileSync(path.join(destDir, "README.md"), "# Commission Estimator\nFunding Partner & Agency Revenue Simulator\nFour visual variants share one calculator engine. All schedules are illustrative and unverified. Lead submission and external partner recruitment links are disabled.\n");
 if (fs.existsSync(path.join(rootDir, "previews"))) {
   fs.cpSync(path.join(rootDir, "previews"), path.join(destDir, "previews"), { recursive: true, force: true });
 }
@@ -78,8 +90,24 @@ if (fs.existsSync(path.join(rootDir, "previews"))) {
 const proposedRegistryEntry = {
   id: slug,
   slug,
-  title: "Moonshine Capital Broker Commission Calculator",
-  category: "Fintech / Financial Modeling",
+  title: "Commission Estimator",
+  subtitle: "Funding Partner & Agency Revenue Simulator",
+  category: "Funding Tools",
+  subcategory: "Commission Modeling",
+  productType: "Calculator",
+  industry: "Financial Services",
+  type: "group-hub",
+  status: "portfolio-site",
+  source: "curated-canonical-registry",
+  path: `sites/${slug}`,
+  livePath: `/sites/${slug}/`,
+  hasIndex: true,
+  variantNumbers: [1, 2, 3, 4],
+  visualStyles: ["Punk Utility Brutalism", "Broker's Manifesto", "Lime Precision Fintech", "Pastel Intelligence"],
+  lifecycle: "active-development",
+  repositoryUrl: "https://github.com/JFeimster/Commission-Estimator",
+  productionUrl: "https://commission-estimator-six.vercel.app/",
+  distribution: ["standalone", "embed", "portfolio-preview"],
   version: manifest.version,
   grouped: true,
   variants: [1, 2, 3, 4],
@@ -105,4 +133,7 @@ fs.writeFileSync(
   "utf8"
 );
 
-console.log(`Flash-UI Portfolio export completed & verified at:\n  ${destDir}`);
+validatePublicTree(destDir);
+fs.rmSync(finalDir, { recursive: true, force: true });
+fs.renameSync(destDir, finalDir);
+console.log(`Flash-UI Portfolio export completed & verified at:\n  ${finalDir}`);

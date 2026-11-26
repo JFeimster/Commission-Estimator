@@ -1,5 +1,27 @@
 # Commission Model & Configuration Guide
 
+## Batch 01 source review — November 25, 2026
+
+The four existing pay plan modules remain the sole registry. Direct models funded-volume percentages or fixed fees; Agency models Bonus Revenue (BR) times personal split and agency overrides; ISO models markup points times volume-tier split; Custom supports configurable versions of these bases. No parallel registry was added.
+
+| Source | Disposition |
+| --- | --- |
+| [DAC-Comp widget](https://github.com/JFeimster/DAC-Comp/blob/main/dac-comp-widget.js) | Reusable BR, split, differential and level formulas. BR selector explicitly uses proxies. No contractual rates imported. |
+| [Commission-Calculator exporter](https://github.com/JFeimster/Commission-Calculator/blob/main/scripts/export-portfolio.mjs) | Reused fail-closed demonstration checks and removal of partner links/lead endpoints. |
+| [Partner Command Center simulator](https://github.com/JFeimster/partner-command-center/blob/main/tools/commission-simulator.js) | Flat-fee and funded-percentage math already fits Direct/Custom. Examples are not verified schedules. |
+| [BrokerFlow](https://github.com/JFeimster/brokerflow-ai) | Funding classification and operations resources; no current publicly authorized compensation schedule established. No routing data copied. |
+| [ResourceGrid affiliate registry](https://github.com/JFeimster/ResourceGrid/blob/main/registries/conversion/affiliate-partners.json) | Referral destinations, not compensation authorization. No affiliate links copied. |
+| [ResourceGrid providers](https://github.com/JFeimster/ResourceGrid/blob/main/registries/funding/providers.json) and [products](https://github.com/JFeimster/ResourceGrid/blob/main/registries/funding/products.json) | Historical imported commission strings and provider verification labels do not establish current schedule applicability or disclosure authorization. No rates adopted. |
+| Notion Affiliate Partner Resources / Funding Partners DB | Affiliate marketing material and unverified comparison ranges; discovery only. No private URLs or page content exported. |
+| Local DAC Pay Plan Chart, Policies folder | Version 01.09.25. Its qualification/residual structure differs from the generic 18-tier model. Current applicability and redistribution authorization are unestablished. File excluded from builds/exports. |
+| [DAC official partner page](https://davidallencapital.com/partner/) | Public lender-revenue split and team override description supports the model category, not every existing tier, BR rate or qualification. No partner-specific schedule marked verified. |
+| GoKapital official broker program | Returned HTTP 403 during review; no rates adopted. |
+| moonshine-partners.registry.json / moonshine.registry-map.json | Not located in the searched desktop resources or named repository trees. Existing funding registries supplied discovery context only. |
+
+All product commission/BR rates, agency ladder and qualification thresholds, level/leadership percentages, ISO brackets and markup, Custom defaults, bonuses, recurring trails and payment timing remain **unverified illustrative assumptions**. Existing Business Capital and Revenue-Based 4% assumptions are preserved. No named public partner is enabled pending current applicability and disclosure authorization.
+
+`VERIFIED PROGRAM MODE` ignores URL rate, agency, ISO and custom-plan overrides. The public exporter refuses verified schedules instead of relabeling them. The existing shared demonstration disclosures remain on standalone pages and reports; each plan also carries an explicit illustrative disclosure in the embed.
+
 ## Authoritative Configuration (`shared/config/commission-config.js`)
 Every variant, the production root, exported reports, and automated tests import `COMMISSION_CONFIG` directly from `shared/config/commission-config.js`.
 

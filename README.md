@@ -1,8 +1,14 @@
-# Moonshine Capital Broker Commission Calculator
+# Commission Estimator
+
+**Funding Partner & Agency Revenue Simulator**
+
+Know your numbers. Build your agency.
+
+Variant 1 is the exclusive standalone design. The functional `/embed/` calculator uses the shared engine and state serializer. All four variants remain available in the portfolio export. See [iframe examples and release commands](docs/DEPLOYMENT.md), [compensation source review](docs/COMMISSION-MODEL.md), and [portfolio integration](docs/PORTFOLIO-IMPORT.md).
 
 **Multi-Variant Production & Flash-UI Portfolio Edition (`v1.0.0`)**
 
-A static-deployable, deterministic Broker Commission Calculator built for Moonshine Capital partner recruitment, commission modeling, and business planning. Four genuinely distinct visual design variations share one authoritative calculation engine, compensation configuration, validation layer, and reporting engine.
+A static-deployable, deterministic Commission Estimator built for Moonshine Capital partner recruitment, commission modeling, and business planning. Four genuinely distinct visual design variations share one authoritative calculation engine, compensation configuration, validation layer, and reporting engine.
 
 ## Selected Production Theme
 - **Variant 1 — Punk Utility Brutalism** (`sites/variant-1/`, theme ID `punk-utility-brutalism`).
@@ -46,8 +52,8 @@ Design review gallery: `sites/index.html` (marked `noindex, nofollow`, excluded 
 ## Commands
 ```bash
 npm run dev                     # Local dev server on port 3000
-npm test                        # Run automated calculation & cross-variant parity tests
-npm run promote -- variant-1    # Promote any variant (variant-1..4) to production root
+npm test                        # Run after build; engine, parity, embed and export checks
+npm run promote -- variant-1    # Regenerate the exclusive production design
 npm run build                   # Promote Variant 1 and build static production dist/
 npm run build:review            # Build dist/review/ containing root + all 4 variants + gallery
 npm run export:portfolio        # Export nested Flash-UI Portfolio package to dist/portfolio/

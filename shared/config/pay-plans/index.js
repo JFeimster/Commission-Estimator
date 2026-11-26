@@ -25,7 +25,7 @@ export const PAY_PLAN_LIST = [
 ];
 
 export function getPayPlanById(planId) {
-  return PAY_PLANS[planId] || PAY_PLANS[DEFAULT_PAY_PLAN_ID];
+  return Object.hasOwn(PAY_PLANS, planId) ? PAY_PLANS[planId] : PAY_PLANS[DEFAULT_PAY_PLAN_ID];
 }
 
 export {

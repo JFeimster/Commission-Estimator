@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,follow">
+  <link rel="icon" href="data:,">
+  <title>Commission Estimator — Funding Partner &amp; Agency Revenue Simulator</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<main>
+  <header><p class="eyebrow">Commission Estimator</p><h1>Know your numbers.<br>Build your agency.</h1><p>Funding Partner &amp; Agency Revenue Simulator</p></header>
+  <form id="calculator">
+    <label>Compensation plan<select id="plan" name="plan"><option value="direct-rate">Direct product rate</option><option value="agency">Agency override</option><option value="iso">ISO volume split</option><option value="custom">Custom partner</option></select></label>
+    <div class="fields">
+      <label>Monthly funded deals<input id="deals" type="number" step="1"></label>
+      <label>Average funding amount (USD)<input id="amount" type="number" step="1000"></label>
+      <label id="rate-field">Illustrative rate (%)<input id="rate" type="number" min="0" max="25" step="0.1" placeholder="Product defaults"></label>
+      <label>Monthly growth (%)<input id="growth" type="number" step="0.5"></label>
+      <label>Projection period<select id="months"><option>12</option><option>24</option><option>36</option></select></label>
+    </div>
+  </form>
+  <section aria-live="polite" aria-atomic="true"><p>Estimated monthly gross commission</p><output id="monthly">$0</output><p id="projection"></p><p id="basis"></p></section>
+  <p id="disclosure">Illustrative, unverified planning assumptions. Gross commissions before expenses, taxes and agreement-specific deductions. No income guarantee.</p>
+  <footer><a id="cta" href="https://commission-estimator-six.vercel.app/" target="_blank" rel="noopener noreferrer">Explore the full simulator ↗</a><button id="share" type="button">Copy scenario link</button><span id="feedback" role="status"></span></footer>
+</main>
+<script type="module" src="./script.js"></script>
+</body></html>

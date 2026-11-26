@@ -42,6 +42,9 @@ export const AGENCY_FIVE_LEVEL_SCHEDULE = [
 
 export const AGENCY_OVERRIDE_PLAN = {
   id: "agency-override",
+  verificationStatus: "illustrative",
+  publicExportAllowed: true,
+  disclosure: "Unverified configurable planning assumptions. Not a contractual compensation schedule.",
   name: "Agency Override & Downline Plan",
   shortName: "Agency Override",
   version: "1.0.0",

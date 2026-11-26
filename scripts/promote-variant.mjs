@@ -13,6 +13,7 @@ import path from "node:path";
 
 const rootDir = process.cwd();
 const requestedVariant = process.argv[2] || "variant-1";
+if (requestedVariant !== "variant-1") throw new Error("Standalone production exclusively supports Variant 1.");
 
 const manifestPath = path.join(rootDir, "variants.json");
 if (!fs.existsSync(manifestPath)) {
@@ -61,7 +62,7 @@ let rootHtml = fs.readFileSync(path.join(variantDir, "index.html"), "utf8");
 rootHtml = rootHtml.replace(/<meta\s+name="robots"\s+content="noindex[^"]*"\s*\/?>\s*/gi, "");
 rootHtml = rootHtml.replace(
   /<title>[^<]*<\/title>/i,
-  "<title>Broker Commission Calculator | Moonshine Capital Partner Program</title>"
+  "<title>Commission Estimator | Moonshine Capital Partner Program</title>"
 );
 // Ensure any ../../shared references in HTML resolve cleanly to ./shared
 rootHtml = rootHtml.replace(/\.\.\/\.\.\/shared\//g, "./shared/");

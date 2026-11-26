@@ -6,6 +6,8 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
+    build: { rollupOptions: { input: { main: path.resolve(__dirname, "index.html"), embed: path.resolve(__dirname, "embed/index.html") } } },
+    publicDir: false as const,
     plugins: [
       react(),
       tailwindcss(),
@@ -14,7 +16,7 @@ export default defineConfig(() => {
       // in production builds. Do not remove.
       {
         name: 'copy-unbundled-src-assets',
-        apply: 'build',
+        apply: 'build' as const,
         closeBundle(error?: Error): void {
           if (error) {
             return;

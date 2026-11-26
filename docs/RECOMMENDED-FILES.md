@@ -1,6 +1,6 @@
 # Recommended Additional Pages & Files
 
-Actionable roadmap of additional pages, configurations, shared modules, automation scripts, tests, and governance documentation to bring the **Moonshine Capital Broker Commission Calculator** to full production, compliance, CI/CD, and Flash-UI Portfolio readiness.
+Actionable roadmap of additional pages, configurations, shared modules, automation scripts, tests, and governance documentation to bring the **Commission Estimator** to full production, compliance, CI/CD, and Flash-UI Portfolio readiness.
 
 ---
 
@@ -53,7 +53,7 @@ Actionable roadmap of additional pages, configurations, shared modules, automati
 ## 5. Additional Automated Tests (`.test.mjs`)
 
 - [ ] **`tests/browser-e2e.test.mjs`** — Headless browser end-to-end test verifying live DOM updates, slider-to-number synchronization, mobile 320px zero-overflow layout, and identical rendered dollar figures across root and all 4 variants.
-- [ ] **`tests/portfolio-export.test.mjs`** — Verifies `npm run export:portfolio` produces a valid `proposed-site-registry-entry.json`, forces `DEMONSTRATION MODE`, and resolves every rewritten `../shared/` import.
+- [ ] **`tests/portfolio-export.test.mjs`** — Verifies `npm run export:portfolio` produces a valid `proposed-site-registry-entry.json`, requires a safe illustrative configuration, and resolves every rewritten `../shared/` import.
 - [ ] **`tests/accessibility.test.mjs`** — Automated DOM/axe-core check verifying form labels, ARIA attributes, `<title>`/`<desc>` inside SVG charts, and keyboard focus order across all 4 variants.
 
 ---

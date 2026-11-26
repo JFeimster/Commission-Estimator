@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
+import { pathToFileURL } from "node:url";
 import { COMMISSION_CONFIG } from "../shared/config/commission-config.js";
 import { calculateCommissions } from "../shared/lib/calculator-engine.js";
 import { createDefaultState } from "../shared/lib/state.js";
@@ -77,8 +78,8 @@ test("Production root matches Variant 1, has zero theme gallery links, and works
   const v1Css = fs.readFileSync(path.join(rootDir, "sites/variant-1/style.css"), "utf8");
 
   assert.equal(rootCss, v1Css, "Root style.css must match authoritative Variant 1 source");
-  assert.ok(rootHtml.includes("Broker Commission Calculator | Moonshine Capital Partner Program"));
-  assert.ok(rootHtml.includes("CALCULATE YOUR"), "Root must render Variant 1 Punk Utility Brutalism");
+  assert.ok(rootHtml.includes("Commission Estimator | Moonshine Capital Partner Program"));
+  assert.ok(rootHtml.includes("Know your numbers. Build your agency."), "Root must render Variant 1 Punk Utility Brutalism");
   assert.ok(rootHtml.includes('id="pay-plan-suite-mount"'), "Root must mount pay-plan suite");
   assert.ok(rootHtml.includes('id="pay-plan-streams-mount"'), "Root must mount commission streams strip");
   assert.ok(rootJs.includes("data-product-dsize"), "Production root must expose per-product deal size inputs");
@@ -116,7 +117,7 @@ test("Cross-variant financial calculation parity across root and all 4 variants"
   ];
 
   for (const relPath of pathsToCheck) {
-    const mod = await import(path.resolve(rootDir, relPath));
+    const mod = await import(pathToFileURL(path.resolve(rootDir, relPath)).href);
     const result = mod.calculateCommissions(sharedInputs, COMMISSION_CONFIG);
     assert.deepEqual(result, expected);
   }

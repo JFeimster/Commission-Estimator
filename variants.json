@@ -1,6 +1,6 @@
 {
-  "projectId": "moonshine-broker-commission-calculator",
-  "projectName": "Moonshine Capital Broker Commission Calculator",
+  "projectId": "commission-estimator",
+  "projectName": "Commission Estimator",
   "version": "1.0.0",
   "defaultVariant": "variant-1",
   "variants": [
@@ -11,7 +11,7 @@
       "themeId": "punk-utility-brutalism",
       "folderPath": "sites/variant-1/",
       "themeDefinitionPath": "sites/variant-1/theme.json",
-      "referenceImagePath": "references/Broker Commission Calculator 1.png",
+      "referenceImagePath": "references/Commission Estimator 1.png",
       "previewPaths": {
         "desktop": "previews/variant-1-desktop.png",
         "mobile": "previews/variant-1-mobile.png"
@@ -27,7 +27,7 @@
       "themeId": "brokers-manifesto",
       "folderPath": "sites/variant-2/",
       "themeDefinitionPath": "sites/variant-2/theme.json",
-      "referenceImagePath": "references/Broker Commission Calculator 2.png",
+      "referenceImagePath": "references/Commission Estimator 2.png",
       "previewPaths": {
         "desktop": "previews/variant-2-desktop.png",
         "mobile": "previews/variant-2-mobile.png"
@@ -43,7 +43,7 @@
       "themeId": "lime-precision-fintech",
       "folderPath": "sites/variant-3/",
       "themeDefinitionPath": "sites/variant-3/theme.json",
-      "referenceImagePath": "references/Broker Commission Calculator 3.png",
+      "referenceImagePath": "references/Commission Estimator 3.png",
       "previewPaths": {
         "desktop": "previews/variant-3-desktop.png",
         "mobile": "previews/variant-3-mobile.png"
@@ -59,7 +59,7 @@
       "themeId": "pastel-intelligence",
       "folderPath": "sites/variant-4/",
       "themeDefinitionPath": "sites/variant-4/theme.json",
-      "referenceImagePath": "references/Broker Commission Calculator 4.png",
+      "referenceImagePath": "references/Commission Estimator 4.png",
       "previewPaths": {
         "desktop": "previews/variant-4-desktop.png",
         "mobile": "previews/variant-4-mobile.png"

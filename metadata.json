@@ -1,6 +1,8 @@
 {
-  "name": "Moonshine Capital Broker Commission Calculator",
-  "description": "Multi-variant financial calculator for Moonshine Capital partner recruitment and commission modeling.",
+  "name": "Commission Estimator",
+  "description": "Funding Partner & Agency Revenue Simulator. Know your numbers. Build your agency.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

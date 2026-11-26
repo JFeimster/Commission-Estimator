@@ -1,5 +1,5 @@
 {
-  "name": "moonshine-broker-commission-calculator",
+  "name": "commission-estimator",
   "private": true,
   "version": "1.0.0",
   "type": "module",
