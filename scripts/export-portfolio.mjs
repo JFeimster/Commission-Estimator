@@ -74,7 +74,7 @@ for (const v of manifest.variants) {
 
 // 3. Copy portable gallery as index.html (adjusting Production Site button to ./variant-1/index.html)
 let galleryHtml = fs.readFileSync(path.join(rootDir, "sites", "index.html"), "utf8");
-galleryHtml = galleryHtml.replace(/href="\.\.\/index\.html"/g, 'href="./variant-1/index.html"');
+galleryHtml = galleryHtml.replace(/\.\.\/previews\/commission-estimator/g, '/assets/previews/commission-estimator');
 fs.writeFileSync(path.join(destDir, "index.html"), galleryHtml, "utf8");
 
 // 4. Copy metadata, previews, and README
