@@ -65,10 +65,12 @@ test('production build contains embed and excludes gallery, alternate variants a
   assert.equal(fs.existsSync('dist/assets/aistudio'), false);
   assert.equal(fs.readFileSync('dist/index.html', 'utf8').includes('sites/index'), false);
   const headers = JSON.parse(fs.readFileSync('vercel.json', 'utf8')).headers;
-  const embed = headers.find(rule => rule.source === '/embed/:path*');
-  assert.ok(embed.headers.some(h => h.key === 'Content-Security-Policy' && h.value === 'frame-ancestors https: http:'));
+  for (const source of ['/embed', '/embed/', '/embed/(.*)']) {
+    const embed = headers.find(rule => rule.source === source);
+    assert.ok(embed.headers.some(h => h.key === 'Content-Security-Policy' && h.value === 'frame-ancestors https: http:'));
+  }
   for (const route of ['/embed', '/embed/', '/embed/index.html']) {
-    const rules = headers.filter(rule => rule.source !== '/embed/:path*' && new RegExp(`^${rule.source}$`).test(route));
+    const rules = headers.filter(rule => !rule.source.startsWith('/embed') && new RegExp(`^${rule.source}$`).test(route));
     assert.equal(rules.flatMap(rule => rule.headers).some(h => h.key === 'X-Frame-Options'), false);
   }
   const main = headers.find(rule => rule.source === '/');
