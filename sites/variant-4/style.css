@@ -16,6 +16,25 @@
   --font-display: 'Outfit', system-ui, sans-serif;
   --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --pp-bg: #FFFFFF;
+  --pp-head-bg: #F7F3FE;
+  --pp-surface: #FCFBFF;
+  --pp-active-bg: #F1ECFC;
+  --pp-border: #E6DEFA;
+  --pp-border-width: 1px;
+  --pp-rule: #E6DEFA;
+  --pp-text: #241343;
+  --pp-muted: #594877;
+  --pp-accent: #793FDC;
+  --pp-accent-ink: #FFFFFF;
+  --pp-badge-bg: #F1ECFC;
+  --pp-input-bg: #FFFFFF;
+  --pp-input-border: #D5BDFB;
+  --pp-radius: 20px;
+  --pp-card-radius: 14px;
+  --pp-btn-radius: 10px;
+  --pp-font-display: var(--font-display);
+  --pp-font-mono: var(--font-mono);
 }
 
 *, *::before, *::after { box-sizing: border-box; }

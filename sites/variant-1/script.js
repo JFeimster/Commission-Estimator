@@ -7,6 +7,7 @@
 import { COMMISSION_CONFIG } from "../../shared/config/commission-config.js";
 import { formatCurrency } from "../../shared/lib/calculator-engine.js";
 import {
+  buildCommissionStreamSlices,
   renderAreaProjectionChartSVG,
   renderProductDonutSVG,
   renderScenarioComparisonSVG,
@@ -75,10 +76,18 @@ initCalculatorApp({
       }
     });
 
-    // Monthly Product Ring Donut Chart + Legend
+    // Monthly Ring Donut Chart + Legend (Product Mix in Solo, Commission Streams when Overrides Active)
+    const streamSlices = buildCommissionStreamSlices(results);
+    const donutHeading = document.getElementById("donut-heading");
+    if (donutHeading) {
+      donutHeading.textContent = streamSlices
+        ? "COMMISSION BY STREAM (MONTHLY)"
+        : "COMMISSION BY PRODUCT (MONTHLY)";
+    }
+
     const donutEl = document.getElementById("donut-chart-container");
     if (donutEl) {
-      donutEl.innerHTML = renderProductDonutSVG(results.productResults, {
+      donutEl.innerHTML = renderProductDonutSVG(streamSlices || results.productResults, {
         palette: BRUTAL_DONUT_PALETTE,
         centerTitle: "PER MONTH",
         centerValue: formatCurrency(results.monthlyGrossCommission),
@@ -90,22 +99,41 @@ initCalculatorApp({
 
     const legendEl = document.getElementById("donut-legend");
     if (legendEl) {
-      legendEl.innerHTML = results.productResults
-        .map((p, idx) => {
-          const swatch = BRUTAL_DONUT_PALETTE[idx % BRUTAL_DONUT_PALETTE.length];
-          return `
-            <div class="legend-item">
-              <div class="legend-left">
-                <span class="legend-swatch" style="background:${swatch}"></span>
-                <div>
-                  <div class="legend-name">${p.shortName} (${p.allocationPercentage}%)</div>
-                  <div class="legend-meta">Avg ${formatCurrency(p.dealSize)} · ${p.commissionRate.toFixed(1)}% rate</div>
+      if (streamSlices) {
+        legendEl.innerHTML = streamSlices
+          .map((s, idx) => {
+            const swatch = BRUTAL_DONUT_PALETTE[idx % BRUTAL_DONUT_PALETTE.length];
+            return `
+              <div class="legend-item">
+                <div class="legend-left">
+                  <span class="legend-swatch" style="background:${swatch}"></span>
+                  <div>
+                    <div class="legend-name">${s.shortName} (${s.sharePercent}%)</div>
+                    <div class="legend-meta">${s.meta}</div>
+                  </div>
                 </div>
-              </div>
-              <div class="legend-val">${formatCurrency(p.grossCommission)}</div>
-            </div>`;
-        })
-        .join("");
+                <div class="legend-val">${formatCurrency(s.grossCommission)}</div>
+              </div>`;
+          })
+          .join("");
+      } else {
+        legendEl.innerHTML = results.productResults
+          .map((p, idx) => {
+            const swatch = BRUTAL_DONUT_PALETTE[idx % BRUTAL_DONUT_PALETTE.length];
+            return `
+              <div class="legend-item">
+                <div class="legend-left">
+                  <span class="legend-swatch" style="background:${swatch}"></span>
+                  <div>
+                    <div class="legend-name">${p.shortName} (${p.allocationPercentage}%)</div>
+                    <div class="legend-meta">Avg ${formatCurrency(p.dealSize)} · ${p.commissionRate.toFixed(1)}% rate</div>
+                  </div>
+                </div>
+                <div class="legend-val">${formatCurrency(p.grossCommission)}</div>
+              </div>`;
+          })
+          .join("");
+      }
     }
 
     // 36-Month Filled-Green Area Trajectory Chart

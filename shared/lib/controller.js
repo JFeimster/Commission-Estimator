@@ -10,6 +10,7 @@ import { COMMISSION_CONFIG, getEqualAllocations } from "../config/commission-con
 import { PARTNER_LINKS } from "../config/partner-links.js";
 import { calculateAllScenarios, calculateCommissions, formatCurrency } from "./calculator-engine.js";
 import { DISCLOSURES, FAQ_ITEMS, METHODOLOGY_STEPS } from "./faq-data.js";
+import { mountPayPlanSuite } from "./pay-plan-ui.js";
 import {
   copyScenarioShareLink,
   downloadFile,
@@ -30,6 +31,7 @@ export function initCalculatorApp(themeHooks) {
   let feedbackTimer = null;
 
   const rootEl = document.body;
+  let payPlanUI = null;
 
   function showToast(message) {
     const toast = document.getElementById("mc-toast");
@@ -164,13 +166,15 @@ export function initCalculatorApp(themeHooks) {
     setText("[data-out='monthlyReceipts']", formatCurrency(results.month1CommissionReceipts));
     setText("[data-out='monthlyExpenses']", formatCurrency(results.monthlyOperatingExpenses));
     setText("[data-out='monthlyNetIncome']", formatCurrency(results.monthlyNetOperatingIncome));
-    setText("[data-out='currentTier']", results.tier.currentTier.name);
-    setText("[data-out='currentTierSummary']", results.tier.currentTier.summary);
+    setText("[data-out='currentTier']", results.tier.activeDisplay?.name || results.tier.currentTier.name);
+    setText("[data-out='currentTierSummary']", results.tier.activeDisplay?.summary || results.tier.currentTier.summary);
     setText(
       "[data-out='nextTierStatus']",
-      results.tier.nextTier
-        ? `${results.tier.dealsNeededForNextTier} more funded deal${results.tier.dealsNeededForNextTier === 1 ? "" : "s"}/mo to reach ${results.tier.nextTier.name}`
-        : "Top demonstration production tier reached"
+      results.meta.payPlanId === "agency-override" && results.agencySummary?.ladder?.nextTier
+        ? `Next Ladder Tier: T${results.agencySummary.ladder.nextTier.tier} (${results.agencySummary.ladder.nextTier.rate}%) at ${results.agencySummary.ladder.nextTier.minClients} clients & ${formatCurrency(results.agencySummary.ladder.nextTier.minTPBR)} TPBR`
+        : results.tier.nextTier
+          ? `${results.tier.dealsNeededForNextTier} more funded deal${results.tier.dealsNeededForNextTier === 1 ? "" : "s"}/mo to reach ${results.tier.nextTier.name}`
+          : "Top demonstration production tier reached"
     );
 
     const allocTotalEl = document.querySelectorAll("[data-out='allocationTotal']");
@@ -229,6 +233,10 @@ export function initCalculatorApp(themeHooks) {
           </tr>`
         )
         .join("");
+    }
+
+    if (payPlanUI) {
+      payPlanUI.sync(state, results);
     }
 
     if (themeHooks && typeof themeHooks.render === "function") {
@@ -552,6 +560,10 @@ export function initCalculatorApp(themeHooks) {
 
   wirePartnerLinks();
   wireStaticContent();
+  payPlanUI = mountPayPlanSuite({
+    getState: () => state,
+    onStateChange: () => render(),
+  });
   wireEvents();
   render();
 

@@ -65,6 +65,7 @@ export const COMMISSION_CONFIG = {
       enabled: true,
       compensationMethod: "percentage", // 'percentage' | 'fixed'
       commissionRate: 4.0,
+      defaultBRRate: 8.0,
       fixedFee: 0,
       defaultDealSize: 50000,
       commissionableBasis: "Funded principal amount",
@@ -78,6 +79,7 @@ export const COMMISSION_CONFIG = {
       enabled: true,
       compensationMethod: "percentage",
       commissionRate: 4.0,
+      defaultBRRate: 6.0,
       fixedFee: 0,
       defaultDealSize: 50000,
       commissionableBasis: "Funded advance amount",
@@ -91,6 +93,7 @@ export const COMMISSION_CONFIG = {
       enabled: true,
       compensationMethod: "percentage",
       commissionRate: 2.5,
+      defaultBRRate: 5.0,
       fixedFee: 0,
       defaultDealSize: 50000,
       commissionableBasis: "Eligible collateralized funding amount",
@@ -104,6 +107,7 @@ export const COMMISSION_CONFIG = {
       enabled: true,
       compensationMethod: "percentage",
       commissionRate: 3.5,
+      defaultBRRate: 6.0,
       fixedFee: 0,
       defaultDealSize: 50000,
       commissionableBasis: "Funded growth tranche",
@@ -117,6 +121,7 @@ export const COMMISSION_CONFIG = {
       enabled: true,
       compensationMethod: "percentage",
       commissionRate: 2.8,
+      defaultBRRate: 2.5,
       fixedFee: 350,
       defaultDealSize: 50000,
       subscriptionMonthlyFee: 45, // Used only when subscription credit modeling is explicitly enabled
@@ -206,7 +211,8 @@ export const COMMISSION_CONFIG = {
     rampUpSchedule: true,
     capacityCap: true,
     customProductRates: true,
-    teamOverrides: false, // Disabled: requires verified multi-tier override schedule
+    teamOverrides: true,
+    multiPartnerPayPlans: true,
   },
   /**
    * Standardized demonstration baseline (Section 13 reference test).
@@ -225,6 +231,8 @@ export const COMMISSION_CONFIG = {
     enableRecurring: false,
   },
   defaultAssumptions: {
+    payPlanId: "direct-rate",
+    operatingMode: "solo", // 'solo' | 'agency'
     monthlyDeals: 10,
     averageDealSize: 50000,
     allocationMode: "custom", // 'equal' | 'custom'

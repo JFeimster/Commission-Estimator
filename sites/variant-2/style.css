@@ -9,6 +9,25 @@
   --font-display: 'Oswald', Impact, sans-serif;
   --font-body: 'DM Sans', system-ui, sans-serif;
   --font-mono: 'Space Mono', ui-monospace, monospace;
+  --pp-bg: #F7F4E9;
+  --pp-head-bg: #EAE1CF;
+  --pp-surface: #F2EBDD;
+  --pp-active-bg: #ECF6C8;
+  --pp-border: #151515;
+  --pp-border-width: 2px;
+  --pp-rule: #CFC6B5;
+  --pp-text: #151515;
+  --pp-muted: #57534C;
+  --pp-accent: #151515;
+  --pp-accent-ink: #D7FF32;
+  --pp-badge-bg: #D7FF32;
+  --pp-input-bg: #F7F4E9;
+  --pp-input-border: #151515;
+  --pp-radius: 0px;
+  --pp-card-radius: 0px;
+  --pp-btn-radius: 0px;
+  --pp-font-display: var(--font-display);
+  --pp-font-mono: var(--font-mono);
 }
 
 *, *::before, *::after { box-sizing: border-box; }

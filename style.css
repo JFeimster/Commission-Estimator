@@ -12,6 +12,25 @@
   --font-display: 'Barlow Condensed', Impact, sans-serif;
   --font-body: 'Public Sans', system-ui, -apple-system, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --pp-bg: #111111;
+  --pp-head-bg: #161616;
+  --pp-surface: #0C0C0C;
+  --pp-active-bg: #122116;
+  --pp-border: #F7F7F4;
+  --pp-border-width: 1.5px;
+  --pp-rule: #2A2A2A;
+  --pp-text: #F7F7F4;
+  --pp-muted: #A6A6A0;
+  --pp-accent: #00F23D;
+  --pp-accent-ink: #080808;
+  --pp-badge-bg: #1A241C;
+  --pp-input-bg: #080808;
+  --pp-input-border: #404040;
+  --pp-radius: 0px;
+  --pp-card-radius: 0px;
+  --pp-btn-radius: 0px;
+  --pp-font-display: var(--font-display);
+  --pp-font-mono: var(--font-mono);
 }
 
 *, *::before, *::after {

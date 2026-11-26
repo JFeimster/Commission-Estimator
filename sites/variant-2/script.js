@@ -53,6 +53,10 @@ initCalculatorApp({
     // Live Commission Flow Schematic
     const flowEl = document.getElementById("process-diagram");
     if (flowEl) {
+      const hasOverrides = (results.commissionStreams?.totalOverrides || 0) > 0;
+      const step3Label = hasOverrides
+        ? `Personal ${formatCurrency(results.commissionStreams.personal)} + Overrides ${formatCurrency(results.commissionStreams.totalOverrides)}`
+        : `${results.effectiveCommissionRatePercent.toFixed(2)}% blended · ${results.payPlan?.shortName || "Direct"}`;
       flowEl.innerHTML = `
         <div class="flow-node">
           <div class="flow-node-step">STEP 01 → FUNDED DEALS</div>
@@ -62,12 +66,12 @@ initCalculatorApp({
         <div class="flow-node">
           <div class="flow-node-step">STEP 02 → ELIGIBLE VOLUME</div>
           <div class="flow-node-val">${formatCurrency(results.totalMonthlyFundedVolume, true)}</div>
-          <div class="flow-node-label">Split across ${results.productResults.length} configured categories</div>
+          <div class="flow-node-label">${results.payPlan?.name || "Direct Product Rate Plan"}</div>
         </div>
         <div class="flow-node">
           <div class="flow-node-step">STEP 03 → GROSS COMMISSION</div>
           <div class="flow-node-val">${formatCurrency(results.monthlyGrossCommission)}</div>
-          <div class="flow-node-label">${results.effectiveCommissionRatePercent.toFixed(2)}% blended illustrative rate</div>
+          <div class="flow-node-label">${step3Label}</div>
         </div>
         <div class="flow-node">
           <div class="flow-node-step">STEP 04 → PRE-TAX OPERATING</div>

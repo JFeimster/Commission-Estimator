@@ -5,6 +5,7 @@
 import { COMMISSION_CONFIG } from "../../shared/config/commission-config.js";
 import { formatCurrency } from "../../shared/lib/calculator-engine.js";
 import {
+  buildCommissionStreamSlices,
   renderProductDonutSVG,
   renderProjectionChartSVG,
   renderScenarioComparisonSVG,
@@ -56,9 +57,17 @@ initCalculatorApp({
       if (badge) badge.textContent = `${p.allocatedDeals.toFixed(1)} deals · ${formatCurrency(p.grossCommission)}/mo`;
     });
 
+    const streamSlices = buildCommissionStreamSlices(results);
+    const donutHeading = document.getElementById("donut-heading");
+    if (donutHeading) {
+      donutHeading.textContent = streamSlices
+        ? "Commission Stream Share"
+        : "Product Commission Share";
+    }
+
     const donutEl = document.getElementById("donut-chart-container");
     if (donutEl) {
-      donutEl.innerHTML = renderProductDonutSVG(results.productResults, {
+      donutEl.innerHTML = renderProductDonutSVG(streamSlices || results.productResults, {
         palette: PASTEL_DONUT,
         centerTitle: "Monthly Gross",
         centerValue: formatCurrency(results.monthlyGrossCommission, true),
@@ -69,20 +78,35 @@ initCalculatorApp({
 
     const legendEl = document.getElementById("donut-legend");
     if (legendEl) {
-      const total = Math.max(1, results.dealBasedMonthlyCommission);
-      legendEl.innerHTML = results.productResults
-        .map((p, idx) => {
-          const pct = Math.round((p.grossCommission / total) * 100);
-          return `
+      if (streamSlices) {
+        legendEl.innerHTML = streamSlices
+          .map(
+            (s, idx) => `
             <div class="legend-row">
               <span class="legend-l">
                 <span class="swatch" style="background:${PASTEL_DONUT[idx % PASTEL_DONUT.length]}"></span>
-                <span>${p.shortName} <small class="muted">(${formatCurrency(p.dealSize)} · ${p.commissionRate.toFixed(1)}%)</small></span>
+                <span>${s.shortName} <small class="muted">(${s.meta})</small></span>
               </span>
-              <strong>${formatCurrency(p.grossCommission)} (${pct}%)</strong>
-            </div>`;
-        })
-        .join("");
+              <strong>${formatCurrency(s.grossCommission)} (${s.sharePercent}%)</strong>
+            </div>`
+          )
+          .join("");
+      } else {
+        const total = Math.max(1, results.dealBasedMonthlyCommission);
+        legendEl.innerHTML = results.productResults
+          .map((p, idx) => {
+            const pct = Math.round((p.grossCommission / total) * 100);
+            return `
+              <div class="legend-row">
+                <span class="legend-l">
+                  <span class="swatch" style="background:${PASTEL_DONUT[idx % PASTEL_DONUT.length]}"></span>
+                  <span>${p.shortName} <small class="muted">(${formatCurrency(p.dealSize)} · ${p.commissionRate.toFixed(1)}%)</small></span>
+                </span>
+                <strong>${formatCurrency(p.grossCommission)} (${pct}%)</strong>
+              </div>`;
+          })
+          .join("");
+      }
     }
 
     const horizonRows =

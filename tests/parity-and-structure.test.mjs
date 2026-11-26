@@ -19,6 +19,8 @@ test("Manifest designates strictly one production default (variant-1) and preser
 
 test("All four variants exist independently, import shared engine, and have valid relative paths", () => {
   const requiredSemanticIds = [
+    "pay-plan-suite-mount",
+    "pay-plan-streams-mount",
     "input-monthly-deals",
     "input-monthly-deals-slider",
     "input-avg-deal-size",
@@ -77,6 +79,8 @@ test("Production root matches Variant 1, has zero theme gallery links, and works
   assert.equal(rootCss, v1Css, "Root style.css must match authoritative Variant 1 source");
   assert.ok(rootHtml.includes("Broker Commission Calculator | Moonshine Capital Partner Program"));
   assert.ok(rootHtml.includes("CALCULATE YOUR"), "Root must render Variant 1 Punk Utility Brutalism");
+  assert.ok(rootHtml.includes('id="pay-plan-suite-mount"'), "Root must mount pay-plan suite");
+  assert.ok(rootHtml.includes('id="pay-plan-streams-mount"'), "Root must mount commission streams strip");
   assert.ok(rootJs.includes("data-product-dsize"), "Production root must expose per-product deal size inputs");
   assert.ok(rootJs.includes("data-product-rate"), "Production root must expose per-product commission rate inputs");
   assert.equal(rootHtml.includes("noindex"), false, "Production root must NOT carry noindex");
@@ -115,5 +119,23 @@ test("Cross-variant financial calculation parity across root and all 4 variants"
     const mod = await import(path.resolve(rootDir, relPath));
     const result = mod.calculateCommissions(sharedInputs, COMMISSION_CONFIG);
     assert.deepEqual(result, expected);
+  }
+});
+
+test("Agency pay plan and shared UI use strictly generic labeling with zero third-party brand names", () => {
+  const filesToAudit = [
+    "shared/config/pay-plans/agency-override.js",
+    "shared/config/pay-plans/iso-volume-split.js",
+    "shared/config/pay-plans/custom-partner.js",
+    "shared/config/pay-plans/direct-rate.js",
+    "shared/lib/pay-plan-ui.js",
+    "shared/lib/reporting.js",
+    "shared/lib/faq-data.js",
+  ];
+  for (const rel of filesToAudit) {
+    const content = fs.readFileSync(path.join(rootDir, rel), "utf8");
+    assert.equal(/David\s+Allen/i.test(content), false, `Found third-party brand in ${rel}`);
+    assert.equal(/\bDAC\b/.test(content), false, `Found third-party acronym in ${rel}`);
+    assert.equal(/\bNMO\b/.test(content), false, `Found third-party leadership acronym in ${rel}`);
   }
 });

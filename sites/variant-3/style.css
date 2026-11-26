@@ -12,6 +12,25 @@
   --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
   --font-body: 'DM Sans', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --pp-bg: #FFFFFF;
+  --pp-head-bg: #F6F7F5;
+  --pp-surface: #FAFBF9;
+  --pp-active-bg: #F2FBE8;
+  --pp-border: #E2E6E0;
+  --pp-border-width: 1px;
+  --pp-rule: #E8EBE7;
+  --pp-text: #151A15;
+  --pp-muted: #505850;
+  --pp-accent: #3F6212;
+  --pp-accent-ink: #FFFFFF;
+  --pp-badge-bg: #E8F9D5;
+  --pp-input-bg: #FFFFFF;
+  --pp-input-border: #CFD6CC;
+  --pp-radius: 16px;
+  --pp-card-radius: 12px;
+  --pp-btn-radius: 10px;
+  --pp-font-display: var(--font-display);
+  --pp-font-mono: var(--font-mono);
 }
 
 *, *::before, *::after { box-sizing: border-box; }

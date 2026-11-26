@@ -342,3 +342,52 @@ export function renderProductDonutSVG(productResults, options = {}) {
     </svg>
   `;
 }
+
+/**
+ * Build donut chart slices for Multi-Stream Commission breakdown
+ * when Agency / Override earnings are active.
+ */
+export function buildCommissionStreamSlices(results) {
+  const streams = results?.commissionStreams;
+  if (!streams || streams.totalOverrides <= 0) return null;
+
+  const raw = [
+    {
+      productName: "Personal Production",
+      shortName: "Personal Production",
+      grossCommission: streams.personal || 0,
+      meta: `${results.payPlan?.shortName || "Personal"} · ${results.modeledMonthlyDeals} deals/mo`,
+    },
+    {
+      productName: "Override Spreads",
+      shortName: "Override Spreads",
+      grossCommission: streams.overrideSpread || 0,
+      meta: "Differential spread on direct team",
+    },
+    {
+      productName: "5-Level Downline",
+      shortName: "5-Level Downline",
+      grossCommission: streams.fiveLevel || 0,
+      meta: "L1–L5 recurring agency pay (+1 mo lag)",
+    },
+    {
+      productName: "2-Gen Leadership",
+      shortName: "2-Gen Leadership",
+      grossCommission: streams.leadership || 0,
+      meta: "2% Openline BR (Gen 1–2 cap)",
+    },
+    {
+      productName: "Sub-Broker Overrides",
+      shortName: "Sub-Broker Overrides",
+      grossCommission: streams.isoSubBroker || 0,
+      meta: "ISO direct sub-broker spread",
+    },
+  ].filter((item) => item.grossCommission > 0);
+
+  const total = Math.max(1, raw.reduce((s, r) => s + r.grossCommission, 0));
+  return raw.map((item) => ({
+    ...item,
+    sharePercent: Math.round((item.grossCommission / total) * 100),
+  }));
+}
+

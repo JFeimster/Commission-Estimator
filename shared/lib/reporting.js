@@ -1,7 +1,9 @@
 /**
  * Shared Reporting & Export Utilities
- * Generates CSV, printable HTML reports, Partner Summary Brochure, and JSON
- * directly from the authoritative calculator-engine results.
+ * Generates CSV, printable HTML/PDF reports, Partner Summary Brochure, and JSON
+ * including Pay-Plan profile details, Commission Streams (Personal, Override Spread,
+ * 5-Level Downline Pay, 2-Gen Leadership Override, ISO Sub-Broker Override),
+ * and full 36-month schedules directly from calculator-engine results.
  */
 
 import { calculateAllScenarios, formatCurrency } from "./calculator-engine.js";
@@ -24,9 +26,16 @@ export function generateReportData(state, results) {
     configVersion: results.meta.version,
     verificationStatus: results.meta.verificationStatus,
     approvedSourceReference: results.meta.approvedSourceReference,
+    payPlan: {
+      id: results.meta.payPlanId,
+      name: results.meta.payPlanName,
+      operatingMode: results.meta.operatingMode,
+      activeTier: results.tier.activeDisplay?.name || results.tier.currentTier.name,
+    },
     assumptions: {
       monthlyDeals: results.inputs.monthlyDeals,
       averageDealSize: results.inputs.averageDealSize,
+      weightedAverageDealSize: results.weightedAverageDealSize,
       scenario: results.scenario,
       monthlyGrowthRate: results.inputs.monthlyGrowthRate,
       rampUpMonths: results.inputs.rampUpMonths,
@@ -40,15 +49,19 @@ export function generateReportData(state, results) {
     summary: {
       modeledMonthlyDeals: results.modeledMonthlyDeals,
       totalMonthlyFundedVolume: results.totalMonthlyFundedVolume,
+      totalMonthlyPersonalBR: results.totalMonthlyPersonalBR || 0,
       effectiveCommissionRatePercent: results.effectiveCommissionRatePercent,
+      personalMonthlyCommission: results.personalMonthlyCommission,
       monthlyGrossCommission: results.monthlyGrossCommission,
       annualizedGrossCommission: results.annualizedGrossCommission,
       firstYearCumulativeCommission: results.firstYearCumulativeCommission,
       twentyFourMonthCumulativeCommission: results.twentyFourMonthCumulativeCommission,
       threeYearCumulativeCommission: results.threeYearCumulativeCommission,
       monthlyNetOperatingIncome: results.monthlyNetOperatingIncome,
-      currentTier: results.tier.currentTier.name,
+      currentTier: results.tier.activeDisplay?.name || results.tier.currentTier.name,
     },
+    commissionStreams: results.commissionStreams,
+    agencySummary: results.agencySummary,
     scenariosComparison: {
       conservative: {
         monthlyDeals: scenarios.conservative.modeledMonthlyDeals,
@@ -85,12 +98,16 @@ export function generateReportCSV(state, results) {
   rows.push(["Generated At", report.generatedAt]);
   rows.push(["Verification Status", report.verificationStatus]);
   rows.push(["Configuration Version", report.configVersion]);
+  rows.push(["Active Pay Plan", report.payPlan.name]);
+  rows.push(["Operating Mode", report.payPlan.operatingMode === "agency" ? "Agency / Override Mode" : "Solo Broker Mode"]);
+  rows.push(["Active Tier / Split", report.payPlan.activeTier]);
   rows.push(["Source Reference", report.approvedSourceReference]);
   rows.push([]);
 
   rows.push(["USER-SELECTED ASSUMPTIONS"]);
   rows.push(["Monthly Funded Deals", report.assumptions.monthlyDeals]);
   rows.push(["Average Funded Deal Size (USD)", report.assumptions.averageDealSize]);
+  rows.push(["Weighted Average Deal Size (USD)", report.assumptions.weightedAverageDealSize]);
   rows.push(["Selected Scenario", `${report.assumptions.scenario.label} (${report.assumptions.scenario.multiplier}x)`]);
   rows.push(["Monthly Production Growth (%)", report.assumptions.monthlyGrowthRate]);
   rows.push(["Ramp-Up Schedule (Months)", report.assumptions.rampUpMonths]);
@@ -105,13 +122,42 @@ export function generateReportCSV(state, results) {
   rows.push(["EARNINGS SUMMARY"]);
   rows.push(["Modeled Monthly Funded Deals", report.summary.modeledMonthlyDeals]);
   rows.push(["Monthly Funded Volume (USD)", report.summary.totalMonthlyFundedVolume]);
-  rows.push(["Monthly Gross Commission (USD)", report.summary.monthlyGrossCommission]);
+  if (report.summary.totalMonthlyPersonalBR > 0) {
+    rows.push(["Monthly Personal Bonus Revenue / Markup Pool (USD)", report.summary.totalMonthlyPersonalBR]);
+  }
+  rows.push(["Personal Monthly Commission (USD)", report.commissionStreams.personal]);
+  if (report.commissionStreams.totalOverrides > 0 || report.payPlan.operatingMode === "agency") {
+    rows.push(["Override Spread Commission (USD/mo)", report.commissionStreams.overrideSpread]);
+    rows.push(["5-Level Downline Pay (USD/mo, paid 15th next mo)", report.commissionStreams.fiveLevel]);
+    rows.push(["2-Gen Top-Tier Leadership Override (USD/mo)", report.commissionStreams.leadership]);
+    if (report.commissionStreams.isoSubBroker > 0) {
+      rows.push(["ISO Sub-Broker Override (USD/mo)", report.commissionStreams.isoSubBroker]);
+    }
+    rows.push(["Total Team & Downline Overrides (USD/mo)", report.commissionStreams.totalOverrides]);
+  }
+  rows.push(["Total Monthly Gross Commission (USD)", report.summary.monthlyGrossCommission]);
   rows.push(["Annualized Gross Commission (USD)", report.summary.annualizedGrossCommission]);
   rows.push(["Modeled First-Year Gross Commission (USD)", report.summary.firstYearCumulativeCommission]);
   rows.push(["Modeled 36-Month Cumulative Commission (USD)", report.summary.threeYearCumulativeCommission]);
   rows.push(["Estimated Monthly Pre-Tax Operating Income (USD)", report.summary.monthlyNetOperatingIncome]);
   rows.push(["Modeled Partner Tier (Illustrative)", report.summary.currentTier]);
   rows.push([]);
+
+  if (report.agencySummary?.enabled && report.agencySummary.fiveLevel) {
+    rows.push(["5-LEVEL DOWNLINE SCHEDULE", "Brokers", "Avg Monthly BR (USD)", "Level BR (USD)", "Rate %", "Status", "Monthly Payout (USD)"]);
+    report.agencySummary.fiveLevel.levels.forEach((lvl) => {
+      rows.push([
+        lvl.label,
+        lvl.brokers,
+        lvl.avgMonthlyBR,
+        lvl.levelBR,
+        `${lvl.rate}%`,
+        lvl.unlocked ? "Unlocked" : `Locked (${lvl.lockReason})`,
+        lvl.monthlyPayout,
+      ]);
+    });
+    rows.push([]);
+  }
 
   rows.push(["SCENARIO COMPARISON", "Deals/Mo", "Monthly Gross (USD)", "12-Mo Cumulative (USD)", "36-Mo Cumulative (USD)"]);
   ["conservative", "base", "optimistic"].forEach((key) => {
@@ -138,8 +184,13 @@ export function generateReportCSV(state, results) {
   rows.push([
     "MONTH",
     "Deals",
+    "Active Tier",
     "Funded Volume (USD)",
-    "Commissions Earned (USD)",
+    "Personal Commission (USD)",
+    "Override Spread (USD)",
+    "5-Level Downline (USD)",
+    "Leadership Override (USD)",
+    "Total Commissions Earned (USD)",
     "Commission Receipts (USD)",
     "Operating Expenses (USD)",
     "Est. Pre-Tax Operating Income (USD)",
@@ -150,7 +201,12 @@ export function generateReportCSV(state, results) {
     rows.push([
       m.month,
       m.deals,
+      m.tierName,
       m.fundedVolume,
+      m.dealCommission,
+      m.overrideSpreadCommission || 0,
+      m.fiveLevelCommission || 0,
+      m.leadershipCommission || 0,
       m.commissionsEarned,
       m.commissionReceipts,
       m.operatingExpenses,
@@ -210,6 +266,27 @@ export function generatePrintableReportHTML(state, results, title = "Moonshine C
     })
     .join("");
 
+  const streamsSection =
+    report.payPlan.operatingMode === "agency" || report.commissionStreams.totalOverrides > 0
+      ? `
+      <h2>Commission Streams Breakdown (${escapeHtml(report.payPlan.name)})</h2>
+      <table>
+        <thead><tr><th>Commission Stream</th><th style="text-align:right">Monthly Estimate</th><th style="text-align:right">Annualized</th></tr></thead>
+        <tbody>
+          <tr><td>Personal Production Commission</td><td style="text-align:right">${formatCurrency(report.commissionStreams.personal)}</td><td style="text-align:right">${formatCurrency(report.commissionStreams.personal * 12)}</td></tr>
+          <tr><td>Differential Override Spreads</td><td style="text-align:right">${formatCurrency(report.commissionStreams.overrideSpread)}</td><td style="text-align:right">${formatCurrency(report.commissionStreams.overrideSpread * 12)}</td></tr>
+          <tr><td>5-Level Agency Downline Pay (Paid 15th Next Mo)</td><td style="text-align:right">${formatCurrency(report.commissionStreams.fiveLevel)}</td><td style="text-align:right">${formatCurrency(report.commissionStreams.fiveLevel * 12)}</td></tr>
+          <tr><td>2-Gen Top-Tier Leadership Override</td><td style="text-align:right">${formatCurrency(report.commissionStreams.leadership)}</td><td style="text-align:right">${formatCurrency(report.commissionStreams.leadership * 12)}</td></tr>
+          ${
+            report.commissionStreams.isoSubBroker > 0
+              ? `<tr><td>ISO Sub-Broker Override</td><td style="text-align:right">${formatCurrency(report.commissionStreams.isoSubBroker)}</td><td style="text-align:right">${formatCurrency(report.commissionStreams.isoSubBroker * 12)}</td></tr>`
+              : ""
+          }
+          <tr><td><strong>Total Combined Monthly Gross</strong></td><td style="text-align:right"><strong>${formatCurrency(report.summary.monthlyGrossCommission)}</strong></td><td style="text-align:right"><strong>${formatCurrency(report.summary.annualizedGrossCommission)}</strong></td></tr>
+        </tbody>
+      </table>`
+      : "";
+
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -234,7 +311,7 @@ export function generatePrintableReportHTML(state, results, title = "Moonshine C
 <body>
   <h1>${escapeHtml(title)}</h1>
   <div class="meta">
-    ${escapeHtml(report.programName)} · Config v${escapeHtml(report.configVersion)} · Status: <strong>${escapeHtml(report.verificationStatus)}</strong> · Generated ${new Date(report.generatedAt).toLocaleString()}
+    ${escapeHtml(report.programName)} · Plan: <strong>${escapeHtml(report.payPlan.name)}</strong> (${report.payPlan.operatingMode === "agency" ? "Agency / Override Mode" : "Solo Mode"}) · Tier: <strong>${escapeHtml(report.payPlan.activeTier)}</strong> · Config v${escapeHtml(report.configVersion)} · Status: <strong>${escapeHtml(report.verificationStatus)}</strong> · Generated ${new Date(report.generatedAt).toLocaleString()}
   </div>
   <div class="banner">${escapeHtml(DISCLOSURES.short)} ${escapeHtml(report.approvedSourceReference)}</div>
   <div class="grid">
@@ -243,9 +320,10 @@ export function generatePrintableReportHTML(state, results, title = "Moonshine C
     <div class="card"><div class="card-label">1st-Year Gross</div><div class="card-val">${formatCurrency(report.summary.firstYearCumulativeCommission)}</div></div>
     <div class="card"><div class="card-label">36-Mo Cumulative</div><div class="card-val">${formatCurrency(report.summary.threeYearCumulativeCommission)}</div></div>
   </div>
+  ${streamsSection}
   <h2>Product Allocation Breakdown</h2>
   <table>
-    <thead><tr><th>Product</th><th style="text-align:right">Mix</th><th style="text-align:right">Deals/Mo</th><th style="text-align:right">Avg Deal Size</th><th style="text-align:right">Volume</th><th style="text-align:right">Rate</th><th style="text-align:right">Monthly Gross</th></tr></thead>
+    <thead><tr><th>Product</th><th style="text-align:right">Mix</th><th style="text-align:right">Deals/Mo</th><th style="text-align:right">Avg Deal Size</th><th style="text-align:right">Volume</th><th style="text-align:right">Eff. Rate</th><th style="text-align:right">Monthly Gross</th></tr></thead>
     <tbody>${productRows}</tbody>
   </table>
   <h2>Scenario Projections</h2>

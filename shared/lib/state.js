@@ -1,13 +1,22 @@
 /**
  * Shared Application State & URL Serialization
- * Includes per-product deal sizes and per-product commission rates.
+ * Includes Modular Pay-Plan selection, Solo vs. Agency / Override Mode,
+ * per-product deal sizes, and per-product commission rates.
  * Strictly omits any contact details or personal identifying information.
  */
 
 import { COMMISSION_CONFIG, getDefaultAllocations, getEqualAllocations } from "../config/commission-config.js";
+import { DEFAULT_PAY_PLAN_ID, PAY_PLANS } from "../config/pay-plans/index.js";
+import {
+  createDefaultAgencyState,
+  createDefaultCustomPlanState,
+  createDefaultIsoState,
+} from "./calculator-engine.js";
 
 export function createDefaultState(config = COMMISSION_CONFIG) {
   return {
+    payPlanId: config.defaultAssumptions.payPlanId || DEFAULT_PAY_PLAN_ID,
+    operatingMode: config.defaultAssumptions.operatingMode || "solo",
     monthlyDeals: config.defaultAssumptions.monthlyDeals,
     averageDealSize: config.defaultAssumptions.averageDealSize,
     allocationMode: config.defaultAssumptions.allocationMode,
@@ -32,6 +41,9 @@ export function createDefaultState(config = COMMISSION_CONFIG) {
     enableCreditSubscription: config.defaultAssumptions.enableCreditSubscription,
     creditSubscriptionClientsPerMonth: config.defaultAssumptions.creditSubscriptionClientsPerMonth,
     targetMonthlyIncome: config.defaultAssumptions.targetMonthlyIncome,
+    agency: createDefaultAgencyState(),
+    iso: createDefaultIsoState(),
+    customPlan: createDefaultCustomPlanState(),
   };
 }
 
@@ -43,6 +55,8 @@ export function createBaselineDemoState(config = COMMISSION_CONFIG) {
   }
   return {
     ...base,
+    payPlanId: "direct-rate",
+    operatingMode: "solo",
     monthlyDeals: config.standardDemonstrationBaseline.monthlyDeals,
     averageDealSize: config.standardDemonstrationBaseline.averageDealSize,
     customRates,
@@ -77,6 +91,12 @@ export function normalizeAllocationsTo100(allocations, config = COMMISSION_CONFI
 
 export function encodeScenarioToSearchParams(state, config = COMMISSION_CONFIG) {
   const params = new URLSearchParams();
+  if (state.payPlanId && state.payPlanId !== DEFAULT_PAY_PLAN_ID) {
+    params.set("plan", String(state.payPlanId));
+  }
+  if (state.operatingMode === "agency") {
+    params.set("opmode", "agency");
+  }
   params.set("deals", String(state.monthlyDeals));
   params.set("size", String(state.averageDealSize));
   params.set("scenario", String(state.scenario));
@@ -117,6 +137,59 @@ export function encodeScenarioToSearchParams(state, config = COMMISSION_CONFIG) 
     if (sizeParts.length > 0) params.set("dsizes", sizeParts.join(","));
   }
 
+  // Compact non-PII serialization for Pay-Plan / Agency parameters when non-default plan or Agency mode active
+  if (state.payPlanId === "agency-override" || state.operatingMode === "agency") {
+    const ag = state.agency || createDefaultAgencyState();
+    const compactAg = {
+      t: ag.startingTier,
+      c: ag.isCertified ? 1 : 0,
+      q: ag.isQCB ? 1 : 0,
+      a: ag.autoAdvanceLadder ? 1 : 0,
+      u: ag.uniqueClientRatioPercent,
+      f: ag.frontlineQCBs,
+      co: (ag.spreadCohorts || []).map((x) => [
+        x.activeBrokers,
+        x.avgMonthlyBR,
+        x.brokerTierRate,
+        x.intermediateManagerRate,
+        x.intermediateIsQCB ? 1 : 0,
+      ]),
+      lv: (ag.fiveLevels || []).map((x) => [x.brokers, x.avgMonthlyBR]),
+      ld: [
+        ag.leadership?.gen1OpenlineBR || 0,
+        ag.leadership?.gen2OpenlineBR || 0,
+        ag.leadership?.gen3OpenlineBR || 0,
+      ],
+    };
+    params.set("ag", JSON.stringify(compactAg));
+  }
+
+  if (state.payPlanId === "iso-volume-split" && state.iso) {
+    params.set(
+      "iso",
+      [
+        state.iso.markupPoints,
+        state.iso.subBrokerCount,
+        state.iso.subBrokerAvgMonthlyVolume,
+        state.iso.subBrokerOverridePercent,
+      ].join(",")
+    );
+  }
+
+  if (state.payPlanId === "custom-partner" && state.customPlan) {
+    params.set(
+      "cp",
+      JSON.stringify({
+        b: state.customPlan.baseType,
+        s: state.customPlan.personalSplitPercent,
+        m: state.customPlan.markupPoints,
+        br: state.customPlan.bonusRevenuePercent,
+        sp: state.customPlan.spreadOverridePercent,
+        lr: state.customPlan.levelRates,
+      })
+    );
+  }
+
   return params.toString();
 }
 
@@ -130,6 +203,13 @@ export function decodeScenarioFromSearch(searchString = "", config = COMMISSION_
   const base = createDefaultState(config);
   if (!searchString) return base;
   const params = new URLSearchParams(searchString.startsWith("?") ? searchString.slice(1) : searchString);
+
+  if (params.has("plan") && PAY_PLANS[params.get("plan")]) {
+    base.payPlanId = params.get("plan");
+  }
+  if (params.get("opmode") === "agency") {
+    base.operatingMode = "agency";
+  }
 
   if (params.has("deals")) base.monthlyDeals = Number(params.get("deals"));
   if (params.has("size")) base.averageDealSize = Number(params.get("size"));
@@ -195,6 +275,82 @@ export function decodeScenarioFromSearch(searchString = "", config = COMMISSION_
         }
       });
     base.customDealSizes = customDealSizes;
+  }
+
+  if (params.has("ag")) {
+    try {
+      const ag = JSON.parse(params.get("ag"));
+      if (ag && typeof ag === "object") {
+        if (Number.isFinite(Number(ag.t))) base.agency.startingTier = Number(ag.t);
+        if (ag.c !== undefined) base.agency.isCertified = Boolean(ag.c);
+        if (ag.q !== undefined) base.agency.isQCB = Boolean(ag.q);
+        if (ag.a !== undefined) base.agency.autoAdvanceLadder = Boolean(ag.a);
+        if (Number.isFinite(Number(ag.u))) base.agency.uniqueClientRatioPercent = Number(ag.u);
+        if (Number.isFinite(Number(ag.f))) base.agency.frontlineQCBs = Number(ag.f);
+        if (Array.isArray(ag.co)) {
+          base.agency.spreadCohorts = base.agency.spreadCohorts.map((def, idx) => {
+            const arr = ag.co[idx];
+            if (!Array.isArray(arr)) return def;
+            return {
+              ...def,
+              activeBrokers: Number(arr[0]) || 0,
+              avgMonthlyBR: Number(arr[1]) || 0,
+              brokerTierRate: Number(arr[2]) || 40,
+              intermediateManagerRate: Number(arr[3]) || 0,
+              intermediateIsQCB: Boolean(arr[4]),
+            };
+          });
+        }
+        if (Array.isArray(ag.lv)) {
+          base.agency.fiveLevels = base.agency.fiveLevels.map((def, idx) => {
+            const arr = ag.lv[idx];
+            if (!Array.isArray(arr)) return def;
+            return {
+              ...def,
+              brokers: Number(arr[0]) || 0,
+              avgMonthlyBR: Number(arr[1]) || 0,
+            };
+          });
+        }
+        if (Array.isArray(ag.ld)) {
+          base.agency.leadership = {
+            gen1OpenlineBR: Number(ag.ld[0]) || 0,
+            gen2OpenlineBR: Number(ag.ld[1]) || 0,
+            gen3OpenlineBR: Number(ag.ld[2]) || 0,
+          };
+        }
+      }
+    } catch {
+      // Ignore malformed query JSON safely
+    }
+  }
+
+  if (params.has("iso")) {
+    const parts = params.get("iso").split(",").map(Number);
+    if (parts.length === 4 && parts.every(Number.isFinite)) {
+      base.iso = {
+        markupPoints: parts[0],
+        subBrokerCount: parts[1],
+        subBrokerAvgMonthlyVolume: parts[2],
+        subBrokerOverridePercent: parts[3],
+      };
+    }
+  }
+
+  if (params.has("cp")) {
+    try {
+      const cp = JSON.parse(params.get("cp"));
+      if (cp && typeof cp === "object") {
+        if (cp.b) base.customPlan.baseType = cp.b;
+        if (Number.isFinite(Number(cp.s))) base.customPlan.personalSplitPercent = Number(cp.s);
+        if (Number.isFinite(Number(cp.m))) base.customPlan.markupPoints = Number(cp.m);
+        if (Number.isFinite(Number(cp.br))) base.customPlan.bonusRevenuePercent = Number(cp.br);
+        if (Number.isFinite(Number(cp.sp))) base.customPlan.spreadOverridePercent = Number(cp.sp);
+        if (Array.isArray(cp.lr)) base.customPlan.levelRates = cp.lr.map((n) => Number(n) || 0);
+      }
+    } catch {
+      // Ignore malformed query JSON safely
+    }
   }
 
   return base;
