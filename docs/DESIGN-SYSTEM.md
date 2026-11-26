@@ -1,4 +1,4 @@
-# Design System & Variations - Moonshine Capital Broker Commission Calculator
+# Design System & Variations - Commission Estimator
 
 ## Overview
 This application incorporates four distinct design systems reflecting different visual aesthetics while sharing a single authoritative financial calculation engine.

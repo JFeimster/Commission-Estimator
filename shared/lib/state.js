@@ -11,6 +11,7 @@ import {
   createDefaultAgencyState,
   createDefaultCustomPlanState,
   createDefaultIsoState,
+  validateInputs,
 } from "./calculator-engine.js";
 
 export function createDefaultState(config = COMMISSION_CONFIG) {
@@ -203,8 +204,9 @@ export function decodeScenarioFromSearch(searchString = "", config = COMMISSION_
   const base = createDefaultState(config);
   if (!searchString) return base;
   const params = new URLSearchParams(searchString.startsWith("?") ? searchString.slice(1) : searchString);
+  if (config.verificationStatus === "VERIFIED PROGRAM MODE") for (const key of ["rates", "ag", "iso", "cp"]) params.delete(key);
 
-  if (params.has("plan") && PAY_PLANS[params.get("plan")]) {
+  if (params.has("plan") && Object.hasOwn(PAY_PLANS, params.get("plan"))) {
     base.payPlanId = params.get("plan");
   }
   if (params.get("opmode") === "agency") {
@@ -213,7 +215,7 @@ export function decodeScenarioFromSearch(searchString = "", config = COMMISSION_
 
   if (params.has("deals")) base.monthlyDeals = Number(params.get("deals"));
   if (params.has("size")) base.averageDealSize = Number(params.get("size"));
-  if (params.has("scenario") && config.scenarios[params.get("scenario")]) {
+  if (params.has("scenario") && Object.hasOwn(config.scenarios, params.get("scenario"))) {
     base.scenario = params.get("scenario");
   }
   if (params.get("mode") === "equal") {
@@ -353,5 +355,49 @@ export function decodeScenarioFromSearch(searchString = "", config = COMMISSION_
     }
   }
 
-  return base;
+  return sanitizeScenarioState(base, config);
+}
+
+export const PUBLIC_PLAN_ALIASES = Object.freeze({
+  "direct-rate": "direct-rate", agency: "agency-override", iso: "iso-volume-split", custom: "custom-partner",
+});
+
+export function sanitizeScenarioState(state, config = COMMISSION_CONFIG) {
+  const sanitized = validateInputs(state, config).sanitized;
+  if (config.verificationStatus === "VERIFIED PROGRAM MODE") sanitized.customRates = {};
+  return { ...state, ...sanitized };
+}
+
+// Adapt the public embed vocabulary into the existing scenario decoder.
+export function decodeEmbedOptions(search = "", config = COMMISSION_CONFIG, partners = {}) {
+  const input = new URLSearchParams(search);
+  const scenario = new URLSearchParams();
+  for (const key of ["deals", "growth"]) {
+    const value = input.get(key);
+    if (value !== null && value.trim() && Number.isFinite(Number(value))) scenario.set(key, value);
+  }
+  for (const [alias, key] of [["amount", "size"], ["months", "horizon"]]) {
+    const value = input.get(alias);
+    if (value !== null && value.trim() && Number.isFinite(Number(value))) scenario.set(key, value);
+  }
+  const plan = Object.hasOwn(PUBLIC_PLAN_ALIASES, input.get("plan")) ? input.get("plan") : "direct-rate";
+  scenario.set("plan", PUBLIC_PLAN_ALIASES[plan]);
+  let state = decodeScenarioFromSearch(scenario.toString(), config);
+  const rate = input.get("rate");
+  if (config.verificationStatus !== "VERIFIED PROGRAM MODE" && ["direct-rate", "custom"].includes(plan) && rate !== null && rate.trim() && Number.isFinite(Number(rate))) {
+    const value = Math.min(25, Math.max(0, Number(rate)));
+    if (plan === "custom") state.customPlan = { ...state.customPlan, baseType: "direct-percent", personalSplitPercent: 100 };
+    state.customRates = Object.fromEntries(config.products.filter(p => p.enabled !== false).map(p => [p.id, value]));
+  }
+  const partnerSlug = input.get("partner");
+  const partner = /^[a-z0-9-]{1,64}$/.test(partnerSlug || "") && Object.hasOwn(partners, partnerSlug) && partners[partnerSlug].publicDisclosureAuthorized === true ? partnerSlug : null;
+  // References are opaque public campaign IDs, never URLs or contact information.
+  const reference = input.get("ref");
+  return {
+    state: sanitizeScenarioState(state, config),
+    theme: ["dark", "light", "auto"].includes(input.get("theme")) ? input.get("theme") : "auto",
+    compact: input.get("compact") !== "false", cta: input.get("cta") !== "false",
+    partner, ref: /^[a-zA-Z0-9_-]{1,48}$/.test(reference || "") ? reference : null,
+    currency: "USD",
+  };
 }

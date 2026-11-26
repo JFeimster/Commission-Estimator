@@ -15,6 +15,9 @@ export const ISO_VOLUME_BRACKETS = [
 
 export const ISO_VOLUME_SPLIT_PLAN = {
   id: "iso-volume-split",
+  verificationStatus: "illustrative",
+  publicExportAllowed: true,
+  disclosure: "Unverified configurable planning assumptions. Not a contractual compensation schedule.",
   name: "ISO Points Split & Volume-Tiered Plan",
   shortName: "ISO Volume Split",
   version: "1.0.0",

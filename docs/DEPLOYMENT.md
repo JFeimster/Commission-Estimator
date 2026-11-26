@@ -1,33 +1,79 @@
-# Deployment Guide (Production, Review & Portfolio)
+# Commission Estimator release and embeds
 
-The calculator requires **zero Node.js runtime or backend** once built. All artifacts deploy cleanly as static sites on Vercel, GitHub Pages, Netlify, or Cloudflare Pages.
+Variant 1 (Punk Utility Brutalism) is the exclusive standalone design. All four source variants remain under `sites/`. Production includes `/` and `/embed/`, without a gallery. The repository and production domain remain unchanged.
 
-## 1. Production Deployment (`npm run build` & Vercel)
-- Promotes `sites/variant-1/` (Punk Utility Brutalism) to the repository root (`index.html`, `style.css`, `script.js`), strips `noindex`, and bundles static assets via Vite into `dist/`.
-- Excludes `sites/`, alternate variants, review gallery, and internal reference assets from the production bundle.
-- Production root operates with zero dependency on `sites/`.
-- **`vercel.json` & `.vercelignore`**: Pre-configured for zero-config Vercel deployments (`framework: "vite"`, `buildCommand: "npm run build"`, `outputDirectory: "dist"`, Node `>=20.19.0`, immutable `/assets/*` caching, and security headers).
+## Validate and prepare
 
-## 2. Review Deployment (`npm run build:review`)
-- Outputs `dist/review/` containing:
-  - Root production calculator (`index.html`)
-  - Design Variations Gallery (`sites/index.html`) with `noindex, nofollow`
-  - All four live standalone variants (`sites/variant-1/` through `sites/variant-4/`)
-  - Shared core (`shared/`) and `robots.txt` disallowing `/sites/`.
-
-## 3. Variant Promotion Workflow
-To switch the production default to another preserved design without losing any variants:
-```bash
-npm run promote -- variant-3
-npm test
+```powershell
+npm ci
 npm run build
-```
-To restore Punk Utility Brutalism:
-```bash
-npm run promote -- variant-1
+npm run lint
+npm test
+npm run export:portfolio
 ```
 
-## 4. Portfolio Export (`npm run export:portfolio`)
-- Outputs a self-contained, nested-URL-safe package to `dist/portfolio/sites/moonshine-broker-commission-calculator/`.
-- Forces `DEMONSTRATION MODE` and rewrites relative imports (`../../shared/` → `../shared/`).
-- Includes `proposed-site-registry-entry.json` for Flash-UI Portfolio integration.
+Tests inspect build artifacts, so build first. Export writes `dist/portfolio/sites/commission-estimator/`. The Vercel build runs `npm run build` afresh and cleans that package from the standalone output. Do not manually publish the post-export `dist` folder. Vite's public-directory copying is disabled to exclude agreements and unreviewed uploads; required runtime assets are bundled.
+
+## Embed example
+
+Paste into Wix's HTML iframe component, a static website or a portal:
+
+```html
+<iframe id="commission-estimator" title="Commission Estimator"
+  src="https://commission-estimator-six.vercel.app/embed/?theme=auto&amp;plan=direct-rate&amp;compact=true&amp;deals=10&amp;amount=50000&amp;rate=3&amp;growth=0&amp;months=12&amp;currency=USD&amp;cta=true"
+  style="width:100%;height:1150px;border:0" loading="lazy"
+  referrerpolicy="origin"></iframe>
+```
+
+Optional responsive resizing on parent pages that allow JavaScript:
+
+```html
+<script>
+const frame = document.getElementById('commission-estimator');
+const estimatorOrigin = 'https://commission-estimator-six.vercel.app';
+window.addEventListener('message', event => {
+  if (event.origin !== estimatorOrigin || event.source !== frame.contentWindow) return;
+  const data = event.data;
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return;
+  if (Object.keys(data).sort().join(',') !== 'height,type,version') return;
+  if (data.type !== 'commission-estimator:resize' || data.version !== 1) return;
+  if (!Number.isInteger(data.height) || data.height < 200 || data.height > 4000) return;
+  frame.style.height = data.height + 'px';
+});
+</script>
+```
+
+The child sends height-only messages to the referrer's exact HTTP(S) origin and accepts no incoming commands. Without a referrer, use fixed sizing. In Wix, use component sizing controls if parent scripts are unavailable.
+
+| Parameter | Behavior |
+| --- | --- |
+| theme | dark, light, auto (default) |
+| plan | direct-rate (default), agency maps to agency-override, iso to iso-volume-split, custom to custom-partner |
+| compact | true (default), false |
+| partner | Approved public slug from the existing partner-links module. The allowlist is empty pending schedule approval; unknown values are ignored. |
+| ref | Optional opaque campaign ID, 1-48 letters, digits, underscores or hyphens. Never put names, contacts, credentials or private identifiers in URLs. Retained in memory only; not sent to destinations. |
+| cta | true (default), false; fixed destination is the full simulator |
+| deals | 0-250 |
+| amount | 0-10000000 USD; shared engine's existing zero-volume boundary |
+| rate | 0-25%, illustrative Direct or Custom only; verified schedules ignore overrides |
+| growth | -25 to 25% monthly |
+| months | 12, 24, 36; unsupported values use the configured default |
+| currency | USD only |
+
+Numeric validation uses the shared engine. Unsupported/nonfinite inputs are ignored. Sharing uses the existing serializer and opens the full simulator. Agency and ISO use the existing defaults; advanced controls remain available in the full simulator. The embed has no lead submission.
+
+Only `/embed` and descendants permit external framing. Other routes retain SAMEORIGIN and `frame-ancestors 'self'`. No X-Frame-Options rule applies to embed. Vite preview does not apply Vercel headers; deployed-header verification remains a release step.
+
+## Release after authorization
+
+Review and commit the focused files first. A push can trigger Vercel's Git integration, so obtain release authorization before pushing.
+
+```powershell
+git push -u origin codex/batch-01-release-embed-portfolio
+# Confirm the existing linked Vercel project before deploying:
+npx vercel deploy --prod
+curl.exe -I https://commission-estimator-six.vercel.app/
+curl.exe -I https://commission-estimator-six.vercel.app/embed/
+```
+
+Confirm standalone framing protection, embed CSP without X-Frame-Options, working calculations, and 404s for alternate design galleries. No merge or deployment was performed by this batch.

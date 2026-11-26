@@ -8,6 +8,9 @@
 
 export const CUSTOM_PARTNER_PLAN = {
   id: "custom-partner",
+  verificationStatus: "illustrative",
+  publicExportAllowed: true,
+  disclosure: "Unverified configurable planning assumptions. Not a contractual compensation schedule.",
   name: "Custom Partner & Override Builder",
   shortName: "Custom Partner",
   version: "1.0.0",

@@ -246,11 +246,13 @@ export function initCalculatorApp(themeHooks) {
 
   function wirePartnerLinks() {
     document.querySelectorAll("[data-partner-cta='become-partner']").forEach((el) => {
+      if (!PARTNER_LINKS.becomePartnerUrl) { el.hidden = true; el.removeAttribute("href"); return; }
       el.setAttribute("href", PARTNER_LINKS.becomePartnerUrl);
       el.setAttribute("target", "_blank");
       el.setAttribute("rel", "noopener noreferrer");
     });
     document.querySelectorAll("[data-partner-cta='recruiter']").forEach((el) => {
+      if (!PARTNER_LINKS.speakWithRecruiterUrl) { el.hidden = true; el.removeAttribute("href"); return; }
       el.setAttribute("href", PARTNER_LINKS.speakWithRecruiterUrl);
       el.setAttribute("target", "_blank");
       el.setAttribute("rel", "noopener noreferrer");

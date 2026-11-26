@@ -5,6 +5,9 @@
 
 export const DIRECT_RATE_PLAN = {
   id: "direct-rate",
+  verificationStatus: "illustrative",
+  publicExportAllowed: true,
+  disclosure: "Unverified configurable planning assumptions. Not a contractual compensation schedule.",
   name: "Direct Product Rate Plan",
   shortName: "Direct Rate",
   version: "1.0.0",

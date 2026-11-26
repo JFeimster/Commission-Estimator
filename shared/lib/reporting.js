@@ -21,6 +21,8 @@ function escapeCsvCell(value) {
 export function generateReportData(state, results) {
   const scenarios = calculateAllScenarios(state);
   return {
+    productName: "Commission Estimator",
+    subtitle: "Funding Partner & Agency Revenue Simulator",
     generatedAt: new Date().toISOString(),
     programName: results.meta.programName,
     configVersion: results.meta.version,
@@ -94,7 +96,7 @@ export function generateReportCSV(state, results) {
   const report = generateReportData(state, results);
   const rows = [];
 
-  rows.push(["Moonshine Capital Broker Commission Projection Report"]);
+  rows.push(["Commission Estimator — Commission Projection Report"]);
   rows.push(["Generated At", report.generatedAt]);
   rows.push(["Verification Status", report.verificationStatus]);
   rows.push(["Configuration Version", report.configVersion]);
@@ -235,7 +237,7 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;");
 }
 
-export function generatePrintableReportHTML(state, results, title = "Moonshine Capital — Broker Commission Projection") {
+export function generatePrintableReportHTML(state, results, title = "Commission Estimator — Commission Projection") {
   const report = generateReportData(state, results);
   const productRows = report.productAllocation
     .map(

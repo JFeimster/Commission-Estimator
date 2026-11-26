@@ -1,6 +1,6 @@
 /**
  * Authoritative Compensation Configuration
- * Moonshine Capital Broker Commission Calculator
+ * Commission Estimator
  *
  * Single source of truth imported by all four visual design variants,
  * the production root, reporting exports, and automated test suites.
@@ -16,6 +16,7 @@ export const COMMISSION_CONFIG = {
   effectiveDate: "2026-01-01",
   verificationStatus: "DEMONSTRATION MODE", // 'DEMONSTRATION MODE' | 'VERIFIED PROGRAM MODE'
   approvedSourceReference: "Illustrative Demonstration Schedule (Unverified — Replace with Approved Partner Agreement)",
+  publicExportAllowed: true, // Existing illustrative assumptions only; never a contractual schedule.
   currency: "USD",
   locale: "en-US",
   limits: {

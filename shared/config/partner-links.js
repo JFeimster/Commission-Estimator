@@ -11,6 +11,9 @@ export const PARTNER_LINKS = {
   speakWithRecruiterUrl: "https://moonshinecapital.com/partners/schedule-call",
   partnerBrochureUrl: null, // Null triggers local printable/downloadable Partner Summary Brochure
   leadCaptureEndpoint: null, // Set to HTTPS endpoint URL to enable live server submission
-  canonicalBaseUrl: "https://calculator.moonshinecapital.com/",
+  canonicalBaseUrl: "https://commission-estimator-six.vercel.app/",
   supportEmailDisplay: "partners@moonshinecapital.com",
 };
+
+// No named partner has a current approved public schedule in this release.
+export const APPROVED_PUBLIC_PARTNERS = Object.freeze({});

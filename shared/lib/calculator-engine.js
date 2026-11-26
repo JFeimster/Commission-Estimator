@@ -1,6 +1,6 @@
 /**
  * Deterministic Multi-Partner Financial Calculation Engine
- * Moonshine Capital Broker Commission Calculator
+ * Commission Estimator
  *
  * Supports:
  * 1. Direct Product Rate Plan (clean default — preserves exact 100% baseline parity)
@@ -430,7 +430,7 @@ export function validateInputs(rawInputs = {}, config = COMMISSION_CONFIG) {
 
   // Per-product custom commission rates (%)
   const customRates = {};
-  if (rawInputs.customRates && typeof rawInputs.customRates === "object") {
+  if (config.verificationStatus !== "VERIFIED PROGRAM MODE" && rawInputs.customRates && typeof rawInputs.customRates === "object") {
     for (const product of enabledProducts) {
       if (rawInputs.customRates[product.id] !== undefined && rawInputs.customRates[product.id] !== "") {
         const rawRate = Number(rawInputs.customRates[product.id]);
@@ -462,7 +462,7 @@ export function validateInputs(rawInputs = {}, config = COMMISSION_CONFIG) {
   }
 
   const scenarioKey =
-    rawInputs.scenario && config.scenarios[rawInputs.scenario]
+    rawInputs.scenario && Object.hasOwn(config.scenarios, rawInputs.scenario)
       ? rawInputs.scenario
       : config.defaultAssumptions.scenario;
 
