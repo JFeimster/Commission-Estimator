@@ -22,6 +22,7 @@ const copyTargets = [
   "project.json",
   "shared",
   "sites",
+  "previews",
 ];
 
 for (const item of copyTargets) {
